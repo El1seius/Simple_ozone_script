@@ -6,8 +6,8 @@ from rich.text import Text
 from constants import LIST_ERROR_OZON
 
 
-def create_table(report, sum_post_in_city):
-    if report is not None:
+def create_table(report, numb_shipment_countries):
+    if report:
         table = Table(
             title="Data sell OZON", title_style="#00ab98",
             expand=True, show_lines=True, style="#f6c42d"
@@ -30,8 +30,9 @@ def create_table(report, sum_post_in_city):
 
         console = Console()
         console.print(table)
-        get_color_message('\nВсего отправлений по странам\n', 'info')
-        print_sum_post(sum_post_in_city)
+        print_sum_post(numb_shipment_countries)
+    else:
+        get_color_message('Отчет не содержит данных', 'info')
 
 
 def edit_item(item):
@@ -56,8 +57,10 @@ def edit_item(item):
 
 
 def print_sum_post(report):
-    for k, v in report.items():
-        print(f'{k} - {v} шт.')
+    if report:
+        get_color_message('\nВсего отправлений по странам\n', 'info')
+        for country in report:
+            print(f'{country[0]} - {country[1]} шт.')
 
 
 def get_color_message(message, tag):
