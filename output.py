@@ -3,11 +3,11 @@ from rich.table import Table
 from rich.theme import Theme
 from rich.text import Text
 
-from constants import LIST_ERROR_OZON
+from constants import LIST_ERROR_OZON, COLOR_COUNTRY
 
 
-def create_table(report, sum_post_in_city):
-    if report is not None:
+def create_table(report, numb_shipment_countries):
+    if report:
         table = Table(
             title="Data sell OZON", title_style="#00ab98",
             expand=True, show_lines=True, style="#f6c42d"
@@ -30,34 +30,33 @@ def create_table(report, sum_post_in_city):
 
         console = Console()
         console.print(table)
-        get_color_message('\nВсего отправлений по странам\n', 'info')
-        print_sum_post(sum_post_in_city)
+        print_sum_post(numb_shipment_countries)
+    else:
+        get_color_message('Отчет не содержит данных', 'info')
 
 
 def edit_item(item):
-    item['shipment_date'] = item.get('shipment_date')[:10]
+    list_str_date = item.get('shipment_date')[:10].split('-')
+    recur_str_date = list_str_date[2] + '.' + list_str_date[1] + '.' + list_str_date[0]
+    item['shipment_date'] = recur_str_date
     item['price'] = '%.2f' % float(item.get('price'))
     item['quantity'] = str(item['quantity'])
     text = Text(item['cluster_delivery'])
 
-    if item['cluster_delivery'] == 'Армения':
-        text.stylize("magenta")
-    elif item['cluster_delivery'] == 'Беларусь':
-        text.stylize("#009ce9")
-    elif item['cluster_delivery'] == 'Киргизия':
-        text.stylize("yellow")
-    elif item['cluster_delivery'] == 'Казахстан':
-        text.stylize("green")
-    else:
-        text.stylize("red")
+    for country in COLOR_COUNTRY:
+        if item['cluster_delivery'] == country:
+            text.stylize(COLOR_COUNTRY[country])
 
     item['cluster_delivery'] = text
+
     return item
 
 
 def print_sum_post(report):
-    for k, v in report.items():
-        print(f'{k} - {v} шт.')
+    if report:
+        get_color_message('\nВсего отправлений по странам\n', 'info')
+        for country in report:
+            print(f'{country[0]} - {country[1]} шт.')
 
 
 def get_color_message(message, tag):

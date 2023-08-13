@@ -3,10 +3,10 @@ import os
 import requests
 import sys
 
+from collections import Counter
 from datetime import datetime as dt
 
-from constants import (CITIES_FROM_AM, CITIES_FROM_KG, CITIES_FROM_BE,
-                       CITIES_FROM_KZ, LIMIT, URL_OZON)
+from constants import LIMIT, URL_OZON, COUNTRIES_SHIPMENT
 from input_data import get_input_data
 from output import create_table, get_color_message, output_error
 
@@ -17,8 +17,8 @@ def get_sales_data(date_start, date_finish, status):
     str_dt_finish = dt.strftime(date_finish, '%Y-%m-%dT%H:%M:%S.%fZ')
 
     report = get_report_with_all_page(str_dt_start, str_dt_finish, offset, status)
-    report_with_filter_city,  sum_post_in_city = check_filter_city(report)
-    return report_with_filter_city, sum_post_in_city
+    report_with_filter,  numb_shipment_countries = filter_by_shipment_countries(report)
+    return report_with_filter, numb_shipment_countries
 
 
 def get_report_with_all_page(str_dt_start, str_dt_finish, offset, status):
@@ -93,36 +93,36 @@ def make_short_report(sales_report):
     return short_report
 
 
-def check_filter_city(short_report):
-    report_am = []
-    report_be = []
-    report_kg = []
-    report_kz = []
-    sum_post_in_city = {}
+def filter_by_shipment_countries(short_report):
+    report_with_filter_city = []
     for item_sold in short_report:
-        clusters = set(item_sold['cluster_delivery'].split())
-        if CITIES_FROM_KZ.union(CITIES_FROM_AM, CITIES_FROM_KG, CITIES_FROM_BE) & clusters:
-            if CITIES_FROM_AM & clusters:
-                item_sold['cluster_delivery'] = 'Армения'
-                report_am.append(item_sold)
-            elif CITIES_FROM_BE & clusters:
-                item_sold['cluster_delivery'] = 'Беларусь'
-                report_be.append(item_sold)
-            elif CITIES_FROM_KG & clusters:
-                item_sold['cluster_delivery'] = 'Киргизия'
-                report_kg.append(item_sold)
-            elif CITIES_FROM_KZ & clusters:
-                item_sold['cluster_delivery'] = 'Казахстан'
-                report_kz.append(item_sold)
+        for one_cou in COUNTRIES_SHIPMENT:
+            cluster = set(item_sold['cluster_delivery'].split())
+            if cluster & COUNTRIES_SHIPMENT[one_cou]:
+                item_sold['cluster_delivery'] = one_cou
+                report_with_filter_city.append(item_sold)
 
-    report_with_filter_city = [*report_am, *report_be, *report_kg, *report_kz]
+    numb_shipment_countries = get_numb_shipment_in_countries(report_with_filter_city)
+    sorted_report = get_sorted_report(report_with_filter_city, numb_shipment_countries)
 
-    sum_post_in_city['Армения'] = len(report_am)
-    sum_post_in_city['Беларусь'] = len(report_be)
-    sum_post_in_city['Киргизия'] = len(report_kg)
-    sum_post_in_city['Казахстан'] = len(report_kz)
+    return sorted_report, numb_shipment_countries
 
-    return report_with_filter_city, sum_post_in_city
+
+def get_numb_shipment_in_countries(report):
+    clusters_delivery = []
+    for posit in report:
+        clusters_delivery.append(posit['cluster_delivery'])
+    numb_shipment_countries = Counter(clusters_delivery).most_common()
+    return numb_shipment_countries
+
+
+def get_sorted_report(report, numb_shipment_countries):
+    sorted_report = []
+    for one_country in numb_shipment_countries:
+        for item in report:
+            if one_country[0] in item['cluster_delivery']:
+                sorted_report.append(item)
+    return sorted_report
 
 
 if __name__ == '__main__':
