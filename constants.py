@@ -11,6 +11,13 @@ COUNTRIES_SHIPMENT = {
                   'Туркестан', 'Уральск', 'Усть-Каменогорск', 'Казахстан'},
 }
 
+COLOR_COUNTRY = {
+    'Армения': "magenta",
+    'Беларусь': "#009ce9",
+    'Киргизия': "yellow",
+    'Казахстан': "green",
+}
+
 STATUS_CATALOGUE = {
     'awaiting_registration': 'Ожидает регистрации',
     'acceptance_in_progress': 'Идёт приёмка',

@@ -3,7 +3,7 @@ from rich.table import Table
 from rich.theme import Theme
 from rich.text import Text
 
-from constants import LIST_ERROR_OZON
+from constants import LIST_ERROR_OZON, COLOR_COUNTRY
 
 
 def create_table(report, numb_shipment_countries):
@@ -36,23 +36,19 @@ def create_table(report, numb_shipment_countries):
 
 
 def edit_item(item):
-    item['shipment_date'] = item.get('shipment_date')[:10]
+    list_str_date = item.get('shipment_date')[:10].split('-')
+    recur_str_date = list_str_date[2] + '.' + list_str_date[1] + '.' + list_str_date[0]
+    item['shipment_date'] = recur_str_date
     item['price'] = '%.2f' % float(item.get('price'))
     item['quantity'] = str(item['quantity'])
     text = Text(item['cluster_delivery'])
 
-    if item['cluster_delivery'] == 'Армения':
-        text.stylize("magenta")
-    elif item['cluster_delivery'] == 'Беларусь':
-        text.stylize("#009ce9")
-    elif item['cluster_delivery'] == 'Киргизия':
-        text.stylize("yellow")
-    elif item['cluster_delivery'] == 'Казахстан':
-        text.stylize("green")
-    else:
-        text.stylize("red")
+    for country in COLOR_COUNTRY:
+        if item['cluster_delivery'] == country:
+            text.stylize(COLOR_COUNTRY[country])
 
     item['cluster_delivery'] = text
+
     return item
 
 
